@@ -178,30 +178,28 @@ def get_available_rooms(date, start, end, min_capacity):
     
     return (browser, wait, rooms, entries)
 
-def create_reservation(date, start, end, min_capacity):
+def create_reservation(date, start, end, room_name):
 
-    result = get_available_rooms(date,start,end,min_capacity)
-    if not result: return False
+    result = get_available_rooms(date,start,end,1)
+    if not result: return "room-not-available"
 
-    min_capacity = int(min_capacity)
     browser, wait, rooms, entries = result
 
-    maximum = min_capacity - 1; max_index = -1
+    index = -1
     for i, room in enumerate(rooms):
-        if room[1] > maximum:
-            maximum = room[1]
-            max_index = i
+        if room[0] == room_name:
+            index = i
 
-    if max_index >= 0:
-        entries[max_index].find_element_by_xpath('.//td[1]/a').click()
+    if index >= 0:
+        entries[index].find_element_by_xpath('.//td[1]/a').click()
         finalize_reservation(wait)
         token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) \
-            + rooms[max_index][0]
+            + rooms[i][0]
     else:
-        token = False
+        token = "room-not-available"
     
     browser.quit()
-    return False
+    return token
 
 #token = create_reservation(DATE, TIME_S, TIME_E, CAPACITY)
 #print(token)

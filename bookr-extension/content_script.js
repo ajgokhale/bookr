@@ -13,8 +13,6 @@ function book_room() {
         alert("Booking a room from " + start_time + " to " + end_time + " on " + date);
         request_available_rooms(start_time, end_time, date);
 
-        state = "choose-room";
-
     } else if (state == "choose-room") {
         if (start_time != start_saved || 
             end_time != end_saved ||
@@ -24,23 +22,25 @@ function book_room() {
             book_room();
             
         } else {
-            var selected_room = $('#select_room').find(":selected").text();
-            //var room_code = $('#select_room').find(":selected").getAttribute("value");
-            var room_code = "dummy";
-            alert("Booking " + selected_room);
+            var selected_room = $('#select_room').find(":selected");
+            alert(selected_room.text());
+            var room_name = selected_room.text();
 
-            var event_id = request_room(room_code);
-
-            var add = document.getElementById("xDescIn")
-            add.removeChild(add.firstChild);
-
-            $('#hInySc0').append("Event ID: " + event_id + '<br>' );
-
-            state = "booked";
+            alert("Booking " + room_name);
+            var event_id = request_room(room_name);
         }
     }
     
 } 
+
+function room_booked(token) {
+    var add = document.getElementById("xDescIn")
+    add.removeChild(add.firstChild);
+
+    $('#hInySc0').append("Event ID: " + token + '<br>' );
+
+    state = "booked";
+}
 
 function remove_button() {
     $("#book_room").attr("hidden",true);
@@ -134,6 +134,10 @@ function request_available_rooms(start_time, end_time, date) {
     // Use default value for now
     const capacity = "2";
 
+    start_saved = start_time;
+    end_saved   = end_time;
+    date_saved  = date;
+
     var Url = 'http://localhost:8080/request-room/';
     alert("sending request");
     $.ajax({
@@ -151,6 +155,7 @@ function request_available_rooms(start_time, end_time, date) {
                 alert("There are no rooms available at the time you've selected. Please try another time.");
             } else {
                 present_rooms(response);
+                state = "choose-room";
             }
             
         },
@@ -165,14 +170,32 @@ function request_available_rooms(start_time, end_time, date) {
 }
 
 function present_rooms(response) {
-    var rooms = response.split(", ");
+    var rooms = JSON.parse(response).rooms;
+
     const length = rooms.length;
     var element = '<select id="select_room" class="btn-small btn-meeting">';
+    for (var i = 0; i < length; i+=1) {
+        element = element.concat('<option>');
+        element = element.concat('<div>');
+        element = element.concat( rooms[i].name)
+        element = element.concat('</div>');
+        element = element.concat('</option>')
+        /*
+        element = element.concat('<div>');
+        element = element.concat( rooms[i].capacity)
+        element = element.concat('</div>'); 
+        */
+    }
+    /*
+    var rooms = response.split(", ");
+    const length = rooms.length;
+    
     for (var i = 0; i < length; i+=2) {
         element = element.concat('<option>');
         element = element.concat( rooms[i] + ' ' + rooms[i + 1] );
         element = element.concat('</option>');
     }
+    */
     element =element.concat( '</select>' );
     if ($('#tabEventDetails').length) {
         $("#tabEventDetails > div:nth-child(1)").after(element);
@@ -181,10 +204,28 @@ function present_rooms(response) {
 
 function request_room(selected_room) {
 
+    var Url = 'http://localhost:8080/book-room/';
+    $.ajax({
+        url: Url,
+        type: "POST",
+        data: {st: start_saved, et: end_saved,
+            dt: date_saved, n: selected_room},
+        datatype: 'json',
+        success: function(response){
+            if (response == "room-not-available") {
+                alert("This room is no longer available, select a different one");
+            } else {
+                room_booked(response);
+            }
+            
+        },
+        error:function(error){
+            alert('error');
+        }
+    });
 // Send request to book room, given the room code as an argument
 // The room summarizes both the time and location of the event being booked
 // It can be passed as a token to the server
 
 // The function will return the event's unique code that will be saved in the event's description
-    return "8ref94hf";
 }

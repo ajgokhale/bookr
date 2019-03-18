@@ -28,6 +28,12 @@ class BookrServer(HTTPServer):
 		self.logfile.close()
 		self.passwords.close()
 
+def list_to_json(lst):
+	new_lst = []
+	for item in lst:
+		tmp = {"name": item[0],"capacity": item[1]}
+		new_lst.append(tmp)
+	return {"rooms": new_lst}
 
 #This class will handles any incoming request from
 #the browser 
@@ -53,7 +59,9 @@ class BookrHandler(BaseHTTPRequestHandler):
 			rooms = ems.get_rooms(params['dt'][0], params['st'][0], 
 					params['et'][0],
 					params['cpty'][0] )
+
 			if len(rooms):
+				rooms = list_to_json(rooms)
 				return json.dumps(rooms)
 			else:
 				return "no-rooms-available"
@@ -91,6 +99,16 @@ class BookrHandler(BaseHTTPRequestHandler):
 		result = self.room_request(params)
 		self.wfile.write(bytes(result, 'utf-8'))
 
+	def do_booking(self, params):
+		start_time = params['st'][0]
+		end_time   = params['et'][0]
+		date       = params['dt'][0]
+		name       = params['n'][0]
+
+		result = ems.create_reservation(date, start_time, end_time, name)
+		self.wfile.write(bytes(result, 'utf-8'))
+		
+
 	#Handler for the GET requests
 	def do_POST(self):
 		
@@ -112,6 +130,8 @@ class BookrHandler(BaseHTTPRequestHandler):
 			self.do_room_request(params)
 		elif path == "/auth":
 		        self.do_login(params)
+		elif path == "/book-room":
+			self.do_booking(params)
 		else:
 			result = "invalid-request"
 			self.wfile.write(bytes(result, 'utf-8'))
