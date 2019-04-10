@@ -2,7 +2,7 @@
   "name": "Bookr",
   "version": "1.0",
   "description": "Book Haas rooms",
-  "permissions": ["activeTab", "declarativeContent", "storage", "identity"],
+  "permissions": ["activeTab", "declarativeContent", "storage", "identity", "webNavigation", "tabs", "*://calendar.google.com/calendar/b/1/r/eventedit/*"],
   "options_page": "options.html",
   "background": {
     "scripts": ["background.js"],

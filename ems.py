@@ -9,9 +9,9 @@ import re
 import string
 
 ### SAMPLE DATA ###
-DATE = "03/14/2019"
-TIME_S = "08:00 AM"
-TIME_E = "10:00 AM"
+DATE = "Apr 4, 2019"
+TIME_S = "8:00am"
+TIME_E = "10:00am"
 CAPACITY = "3"
 
 month_trans = {
@@ -113,19 +113,29 @@ def list_rooms(wait, browser):
     button = wait.until(EC.element_to_be_clickable((By.XPATH,'//div[@id="location-filter-container"]/div[2]/button')))
     button.click()
 
-    sleep(2)
     button = wait.until(EC.element_to_be_clickable((By.XPATH,'//ul[@id="result-tabs"]/li[1]/a')))
+    element = browser.find_element_by_xpath('//*[@id="page-loading-overlay"]')
+    if (element.is_displayed()): 
+        wait.until(EC.invisibility_of_element_located((By.XPATH, '//*[@id="page-loading-overlay"]')));
     button.click()
 
-    sleep(2)
+    element = browser.find_element_by_xpath('//*[@id="page-loading-overlay"]')
+    if (element.is_displayed()): 
+        wait.until(EC.invisibility_of_element_located((By.XPATH, '//*[@id="page-loading-overlay"]')));
+    wait.until(EC.element_to_be_clickable((By.XPATH,'//table[@id="available-list"]')))
     entries = browser.find_elements_by_xpath('//table[@id="available-list"]/tbody/tr')
     if len(entries):
         return entries
     
     return False
 
-def finalize_reservation(wait):
+def finalize_reservation(wait, browser):
+    action = webdriver.common.action_chains.ActionChains(browser)
+
     button = wait.until(EC.element_to_be_clickable((By.XPATH,'//button[@id="next-step-btn"]')))
+    #action.move_to_element(button).click().perform()
+    browser.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+    sleep(0.2)
     button.click()
 
     info = wait.until(EC.element_to_be_clickable((By.XPATH,'//input[@id="event-name"]')))
@@ -133,9 +143,11 @@ def finalize_reservation(wait):
     info = wait.until(EC.element_to_be_clickable((By.XPATH,'//input[@id="1stContactPhone1"]')))
     info.send_keys("1")
 
-    sleep(2)
     button = wait.until(EC.element_to_be_clickable((By.XPATH,'//button[text()="Create Reservation"]')))
+    browser.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+    sleep(0.2)
     button.click()
+    
 
 def get_rooms(date, start, end, min_capacity):
     result = get_available_rooms(date,start,end,min_capacity)
@@ -180,7 +192,7 @@ def get_available_rooms(date, start, end, min_capacity):
 
 def create_reservation(date, start, end, room_name):
 
-    result = get_available_rooms(date,start,end,1)
+    result = get_available_rooms(date,start,end,"1")
     if not result: return "room-not-available"
 
     browser, wait, rooms, entries = result
@@ -191,15 +203,15 @@ def create_reservation(date, start, end, room_name):
             index = i
 
     if index >= 0:
-        entries[index].find_element_by_xpath('.//td[1]/a').click()
-        finalize_reservation(wait)
-        token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) \
-            + rooms[i][0]
+        entries[index + 1].find_element_by_xpath('.//td[1]/a').click()
+        finalize_reservation(wait, browser)
+        token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+            #+ rooms[index][0]
     else:
         token = "room-not-available"
     
     browser.quit()
     return token
 
-#token = create_reservation(DATE, TIME_S, TIME_E, CAPACITY)
+#token = create_reservation(DATE, TIME_S, TIME_E, "N255- Group Study Room")
 #print(token)

@@ -4,25 +4,11 @@
 
 'use strict';
 var CALLBACK_URL = 'https://'+chrome.runtime.id+'.chromiumapp.org/';
-var AUTH_URL = 'file:///C:/Users/gokhales/Documents/college/sp19/unanimous/ajgokhale.github.io/index.html?redirect_uri='+CALLBACK_URL;
-AUTH_URL = 'https://ajgokhale.github.io/?redirect_uri=' + CALLBACK_URL;
+// var AUTH_URL = 'file:///C:/Users/gokhales/Documents/college/sp19/unanimous/ajgokhale.github.io/index.html?redirect_uri='+CALLBACK_URL;
+var AUTH_URL = 'https://ajgokhale.github.io/?redirect_uri=' + CALLBACK_URL;
 
 var login_token = "null";
-/*
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.storage.sync.set({color: '#3aa757'}, function() {
-    console.log('The color is green.');
-  });
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-    chrome.declarativeContent.onPageChanged.addRules([{
-      conditions: [new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostEquals: 'developer.chrome.com'},
-      })],
-      actions: [new chrome.declarativeContent.ShowPageAction()]
-    }]);
-  });
-});
-*/
+
 
 function send_token(sendResponse, token) {
   if (token != null) {
@@ -63,3 +49,9 @@ chrome.runtime.onMessage.addListener(
     authenticate(sendResponse);
     return true;
   });
+
+chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+    if (details.url.search("calendar.google.com/calendar/b/1/r/eventedit") != -1) {
+      chrome.tabs.executeScript(details.tabId, {file: "content_script.js"});
+  }
+});

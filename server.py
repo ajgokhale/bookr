@@ -108,10 +108,14 @@ class BookrHandler(BaseHTTPRequestHandler):
 		result = ems.create_reservation(date, start_time, end_time, name)
 		self.wfile.write(bytes(result, 'utf-8'))
 		
+	def get_booking(self, params):
+		eventId = params['id'][0]
+
+		response = json.dumps({"valid": "valid", "room": "default"})
+		self.wfile.write(bytes(response, 'utf-8'))
 
 	#Handler for the GET requests
 	def do_POST(self):
-		
 		parsed = urlsplit(self.path)
 		path = parsed[2] or '//'
 		path = path.rstrip('/')
@@ -131,15 +135,17 @@ class BookrHandler(BaseHTTPRequestHandler):
 		elif path == "/auth":
 		        self.do_login(params)
 		elif path == "/book-room":
-			self.do_booking(params)
+			self.do_booking(params)                
+		elif path == "/booking":
+			self.get_booking(params)
 		else:
 			result = "invalid-request"
 			self.wfile.write(bytes(result, 'utf-8'))
 
 		self.server.logfile.write("Received POST request \n")
 		return
-	def do_GET(self):
 
+	def do_GET(self):
 		parsed = urlsplit(self.path)
 		path = parsed[2] or '//'
 		path = path.rstrip('/')
@@ -158,16 +164,16 @@ class BookrHandler(BaseHTTPRequestHandler):
 		self.server.logfile.write("received POST request")
 		return
 
-try:
-	#Create a web server and define the handler to manage the
-	#incoming request
-	server = BookrServer(('', PORT_NUMBER), BookrHandler)
-	print('Started httpserver on port ' , PORT_NUMBER)
-	
-	#Wait forever for incoming htto requests
-	server.serve_forever()
+#try:
+#Create a web server and define the handler to manage the
+#incoming request
+server = BookrServer(('', PORT_NUMBER), BookrHandler)
+print('Started httpserver on port ' , PORT_NUMBER)
 
-except KeyboardInterrupt:
-	print('^C received, shutting down the web server')
-	server.socket.close()
-	server.cleanup()
+#Wait forever for incoming htto requests
+server.serve_forever()
+
+#except KeyboardInterrupt:
+#	print('^C received, shutting down the web server')
+#	server.socket.close()
+#	server.cleanup()
