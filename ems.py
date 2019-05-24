@@ -87,7 +87,7 @@ def initialize_browser():
 
     user_id = wait.until(EC.element_to_be_clickable((By.ID, 'password_input')))
     user_id.clear()
-    user_id.send_keys("Thirteen-1=99" + Keys.RETURN)
+    user_id.send_keys("[INSERT_PASSWORD_HERE]" + Keys.RETURN)
 
     return browser
 
